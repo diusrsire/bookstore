@@ -1,0 +1,13 @@
+{
+    "require": {
+        "league/omnipay": "^3.2",
+        "omnipay/paypal": "^3.0",
+        "omnipay/common": "^3.4",
+        "omnipay/stripe": "^3.2"
+    },
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
+    }
+}
