@@ -1,6 +1,35 @@
+# Environment files
 .env
+.env.*
+
+# Dependencies
 vendor/
+composer.phar
+
+# Logs and debugging
 logs/
-uploaded_img/
-.DS_Store
 *.log
+debug_log.php
+
+# Uploaded content
+uploaded_img/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Ngrok files
+ngrok.exe
+ngrok
+*.ngrok.*
+
+# Documentation
+README.md
+*.md
+
+# IDE and editor files
+.idea/
+.vscode/
+*.sublime-*
+*.swp
+*.swo
