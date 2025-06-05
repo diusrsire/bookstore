@@ -1,14 +1,8 @@
 <?php
+require_once 'config.php';
+require_once 'header.php';
 
-include 'config.php';
-
-session_start();
-
-$user_id = $_SESSION['user_id'];
-
-if(!isset($user_id)){
-   header('location:login.php');
-}
+$user_id = $_SESSION['user_id'] ?? null;
 
 ?>
 
@@ -29,7 +23,6 @@ if(!isset($user_id)){
 </head>
 <body>
    
-<?php include 'header.php'; ?>
 
 <div class="heading">
    <h3>your orders</h3>
@@ -50,6 +43,13 @@ if(!isset($user_id)){
       <div class="box">
          <p> placed on : <span><?php echo $fetch_orders['placed_on']; ?></span> </p>
          <p> name : <span><?php echo $fetch_orders['name']; ?></span> </p>
+         <p> number : <span><?php echo $fetch_orders['number']; ?></span> </p>
+         <p> email : <span><?php echo $fetch_orders['email']; ?></span> </p>
+         <p> address : <span><?php echo $fetch_orders['address']; ?></span> </p>
+         <p> payment method : <span><?php echo $fetch_orders['method']; ?></span> </p>
+         <p> your orders : <span><?php echo $fetch_orders['total_products']; ?></span> </p>
+         <p> total price : <span>$<?php echo $fetch_orders['total_price']; ?>/-</span> </p>
+         <p> payment status : <span style="color:<?php if($fetch_orders['payment_status'] == 'pending'){ echo 'red'; }else{ echo 'green'; } ?>;"><?php echo $fetch_orders['payment_status']; ?></span> </p>
          <p> number : <span><?php echo $fetch_orders['number']; ?></span> </p>
          <p> email : <span><?php echo $fetch_orders['email']; ?></span> </p>
          <p> address : <span><?php echo $fetch_orders['address']; ?></span> </p>

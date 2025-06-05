@@ -3,7 +3,9 @@
         "league/omnipay": "^3.2",
         "omnipay/paypal": "^3.0",
         "omnipay/common": "^3.4",
-        "omnipay/stripe": "^3.2"
+        "omnipay/stripe": "^3.2",
+        "php-http/guzzle7-adapter": "^1.0",
+        "stripe/stripe-php": "^17.3"
     },
     "config": {
         "allow-plugins": {

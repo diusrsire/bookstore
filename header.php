@@ -1,4 +1,27 @@
 <?php
+// Start session if not already started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Include the DB class
+require_once 'payments_config.php';
+
+// Initialize cart count
+$cart_rows_number = 0;
+
+// Get user ID from session
+$user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
+
+// Initialize database connection using DB class
+try {
+    $db = new DB();
+    $conn = $db->db;
+} catch (Exception $e) {
+    error_log("Database connection error: " . $e->getMessage());
+    $conn = null;
+}
+
 if(isset($message)){
    foreach($message as $message){
       echo '
@@ -10,6 +33,22 @@ if(isset($message)){
    }
 }
 ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Bookly</title>
+
+   <!-- font awesome cdn link  -->
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+   <!-- custom css file link  -->
+   <link rel="stylesheet" href="css/style.css">
+
+</head>
+<body>
 
 <header class="header">
 
@@ -21,7 +60,11 @@ if(isset($message)){
             <a href="#" class="fab fa-instagram"></a>
             <a href="#" class="fab fa-linkedin"></a>
          </div>
-         <p> new <a href="login.php">login</a> | <a href="register.php">register</a> </p>
+         <?php if (!$user_id): ?>
+            <p> new <a href="login.php">login</a> | <a href="register.php">register</a> </p>
+         <?php else: ?>
+            <p>Welcome back!</p>
+         <?php endif; ?>
       </div>
    </div>
 
@@ -42,18 +85,32 @@ if(isset($message)){
             <a href="search_page.php" class="fas fa-search"></a>
             <div id="user-btn" class="fas fa-user"></div>
             <?php
-               $select_cart_number = mysqli_query($conn, "SELECT * FROM `cart` WHERE user_id = '$user_id'") or die('query failed');
-               $cart_rows_number = mysqli_num_rows($select_cart_number); 
+            if ($user_id && $conn) {
+                try {
+                    // Use prepared statement to prevent SQL injection
+                    $stmt = $conn->prepare("SELECT COUNT(*) as count FROM `cart` WHERE user_id = ?");
+                    $stmt->bind_param("i", $user_id);
+                    $stmt->execute();
+                    $result = $stmt->get_result();
+                    if ($row = $result->fetch_assoc()) {
+                        $cart_rows_number = $row['count'];
+                    }
+                    $stmt->close();
+                } catch (Exception $e) {
+                    error_log("Cart query error: " . $e->getMessage());
+                }
+            }
             ?>
             <a href="cart.php"> <i class="fas fa-shopping-cart"></i> <span>(<?php echo $cart_rows_number; ?>)</span> </a>
          </div>
 
+         <?php if ($user_id): ?>
          <div class="user-box">
-            <p>username : <span><?php echo $_SESSION['user_name']; ?></span></p>
-            <p>email : <span><?php echo $_SESSION['user_email']; ?></span></p>
+            <p>username : <span><?php echo htmlspecialchars($_SESSION['user_name'] ?? ''); ?></span></p>
+            <p>email : <span><?php echo htmlspecialchars($_SESSION['user_email'] ?? ''); ?></span></p>
             <a href="logout.php" class="delete-btn">logout</a>
          </div>
+         <?php endif; ?>
       </div>
    </div>
-
 </header>

@@ -1,10 +1,8 @@
 <?php
-
 include 'config.php';
+require_once 'header.php';
 
-session_start();
-
-$user_id = $_SESSION['user_id'];
+$user_id = $_SESSION['user_id'] ?? null;
 
 if(!isset($user_id)){
    header('location:login.php');
@@ -45,10 +43,7 @@ if(isset($_POST['add_to_cart'])){
    <link rel="stylesheet" href="css/style.css">
 
 </head>
-<body>
-   
-<?php include 'header.php'; ?>
-
+<body>   
 <section class="home">
 
    <div class="content">

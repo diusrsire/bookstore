@@ -1,0 +1,6 @@
+.env
+vendor/
+logs/
+uploaded_img/
+.DS_Store
+*.log

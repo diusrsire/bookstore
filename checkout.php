@@ -1,8 +1,9 @@
 <?php
 include 'config.php';
 require_once 'payments_config.php';
+require_once 'logger.php';  // Add logger
 
-session_start();
+// Session is already started in config.php
 $user_id = $_SESSION['user_id'] ?? null;
 
 if(!$user_id){
@@ -40,29 +41,53 @@ if(isset($_POST['order_btn'])){
    if($cart_total == 0){
       $message[] = 'Your cart is empty';
    } else {
-      if(mysqli_num_rows($order_query) > 0){
-         $message[] = 'Order already placed!';
-      } else {
-         $stmt = $conn->prepare("INSERT INTO `orders`(user_id, name, number, email, method, address, total_products, total_price, placed_on) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)");
-         $stmt->bind_param("issssssds", $user_id, $name, $number, $email, $method, $address, $total_products, $cart_total, $placed_on);
-         $stmt->execute();
+      try {
+         // Generate unique order ID
+         $order_id = uniqid('order_');
+         
+         if($method == 'stripe') {
+            $_SESSION['pending_order'] = [
+               'order_id' => $order_id,
+               'amount' => $cart_total,
+               'products' => $total_products,
+               'customer' => [
+                  'name' => $name,
+                  'email' => $email,
+                  'address' => $address
+               ]
+            ];
+            header('Location: stripe_form.php');
+            exit;
+         }
+         
+         if(mysqli_num_rows($order_query) > 0){
+            $message[] = 'Order already placed!';
+         } else {
+            $stmt = $conn->prepare("INSERT INTO `orders`(user_id, name, number, email, method, address, total_products, total_price, placed_on) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("issssssds", $user_id, $name, $number, $email, $method, $address, $total_products, $cart_total, $placed_on);
+            $stmt->execute();
 
-         // Simulated Payment ID (replace with actual ID from Stripe/PayPal)
-         $payment_id = uniqid('pay_');
+            // Simulated Payment ID (replace with actual ID from Stripe/PayPal)
+            $payment_id = uniqid('pay_');
 
-         $dbClass->insert_payment_details([
-            'payment_id'     => $payment_id,
-            'user_id'        => $user_id,
-            'payer_name'     => $name,
-            'payer_email'    => $email,
-            'amount'         => $cart_total,
-            'currency'       => 'USD',
-            'payment_status' => 'pending',
-            'created'        => date('Y-m-d H:i:s')
-         ]);
+            $dbClass->insert_payment_details([
+               'payment_id'     => $payment_id,
+               'user_id'        => $user_id,
+               'payer_name'     => $name,
+               'payer_email'    => $email,
+               'amount'         => $cart_total,
+               'currency'       => 'USD',
+               'payment_status' => 'pending',
+               'created'        => date('Y-m-d H:i:s')
+            ]);
 
-         $message[] = 'Order placed successfully!';
-         mysqli_query($conn, "DELETE FROM `cart` WHERE user_id = '$user_id'") or die('Failed to clear cart');
+            $message[] = 'Order placed successfully!';
+            mysqli_query($conn, "DELETE FROM `cart` WHERE user_id = '$user_id'") or die('Failed to clear cart');
+         }
+      } catch (Exception $e) {
+         $logger = new PaymentLogger();
+         $logger->log($e->getMessage(), 'ERROR');
+         $message[] = 'An error occurred. Please try again.';
       }
    }
 }
